@@ -13,3 +13,4 @@
 5. test dlib
 	- `test test -run Test_GetPicInfo`
 	- `test test -run Test_GetPicCrop`
+	- dlib could output the image base64 format, you could use `https://codebeautify.org/base64-to-image-converter` to show the picture.

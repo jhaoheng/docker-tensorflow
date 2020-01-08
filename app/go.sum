@@ -1,0 +1,6 @@
+github.com/Kagami/go-face v0.0.0-20191005110546-01156987f993 h1:F/yo0o+tus3kmU2GdHAuLVPKfhRDIR/sWOl02+H+uX8=
+github.com/Kagami/go-face v0.0.0-20191005110546-01156987f993/go.mod h1:6V3Zb/7DyezDSai6K1gDrTtN02RpvIFzQBHUEDAcjNI=
+github.com/tensorflow/tensorflow v1.15.0 h1:ujwCjW4LRUwUp7YrAK+menE0GZkeJgkQT5FgdWNpVCk=
+github.com/tensorflow/tensorflow v1.15.0/go.mod h1:itOSERT4trABok4UOoG+X4BoKds9F3rIsySdn+Lvu90=
+github.com/tensorflow/tensorflow v2.0.0+incompatible h1:Xf8wCz3sNw9aCkRZZs2zj7KT5MVsMjFfsg9nUzqnvH8=
+github.com/tensorflow/tensorflow v2.0.0+incompatible/go.mod h1:itOSERT4trABok4UOoG+X4BoKds9F3rIsySdn+Lvu90=

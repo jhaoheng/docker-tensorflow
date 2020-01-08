@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  app:
+    build: .
+    image: docker-tensorflow-demo
+    container_name: docker-tensorflow
+    volumes: 
+      - ./app:/go/src/app
+    working_dir: /go/src/app
+    tty: true

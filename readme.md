@@ -1,3 +1,7 @@
+# Notice
+1. This repo not contain tensorflow model. Please put your-model on the `app/imagepross/tfmodels`
+2. How to use? please refer the `app/imageprocess/**_test.go`
+
 # for test
 
 1. `docker-compose up -d`

@@ -122,6 +122,8 @@ func (tfClient *TFPCLIENT) ShowGraphOperation(graph *tf.Graph) {
 正規化設定
 */
 func (tfClient *TFPCLIENT) constructGraphToNormalizeImage() (graph *tf.Graph, input, output tf.Output, err error) {
+	var TFStringType tf.DataType = tf.String
+	var TFFloatType tf.DataType = tf.Float
 	const (
 		H, W  = 64, 64
 		Mean  = float32(0)
@@ -129,7 +131,7 @@ func (tfClient *TFPCLIENT) constructGraphToNormalizeImage() (graph *tf.Graph, in
 	)
 
 	s := op.NewScope()
-	input = op.Placeholder(s, tf.String)
+	input = op.Placeholder(s, TFStringType)
 	// fmt.Println("input =>", input.Op.Name())
 	// stop()
 	output = op.Div(s,
@@ -137,7 +139,7 @@ func (tfClient *TFPCLIENT) constructGraphToNormalizeImage() (graph *tf.Graph, in
 			op.ResizeBilinear(s,
 				op.ExpandDims(s,
 					op.Cast(s,
-						op.DecodeJpeg(s, input, op.DecodeJpegChannels(3)), tf.Float),
+						op.DecodeJpeg(s, input, op.DecodeJpegChannels(3)), TFFloatType),
 					op.Const(s.SubScope("make_batch"), int32(0))),
 				op.Const(s.SubScope("size"), []int32{H, W})),
 			op.Const(s.SubScope("mean"), Mean)),

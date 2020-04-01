@@ -20,6 +20,6 @@ Requires:' >> /usr/local/lib/pkgconfig/dlib-1.pc
 RUN go get github.com/Kagami/go-face@01156987f993
 
 # tensorflow
-RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-1.13.1.tar.gz && \
+RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-1.15.0.tar.gz && \
     tar -C /usr/local -xzf *.tar.gz	&& rm *.tar.gz && ldconfig
-RUN go get -v github.com/tensorflow/tensorflow@v1.14.0
+RUN go get -v github.com/tensorflow/tensorflow@v2.2.0

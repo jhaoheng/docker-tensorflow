@@ -48,6 +48,10 @@ func NewTFClient(modelfile string) TFPCLIENT {
 	return tfClient
 }
 
+func (tfClient *TFPCLIENT) ShowTFVersion() {
+	fmt.Println(tf.Version())
+}
+
 /*
 Close session
 */

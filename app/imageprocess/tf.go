@@ -116,7 +116,8 @@ func (tfClient *TFPCLIENT) GetResult(feedsOutput map[tf.Output]*tf.Tensor, fetch
 /*
 顯示 model input/output 可用的參數名稱
 */
-func (tfClient *TFPCLIENT) ShowGraphOperation(graph *tf.Graph) {
+func (tfClient *TFPCLIENT) ShowGraphOperation() {
+	graph := tfClient.ModelGraph
 	for i, obj := range graph.Operations() {
 		fmt.Println(i, "=>", obj.Name(), ",", obj.Type(), ",", obj.Output(0).Shape(), ",", obj.NumOutputs())
 	}

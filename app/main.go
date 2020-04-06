@@ -1,40 +1,110 @@
 package main
 
 import (
-	"app/imageprocess"
 	"fmt"
+	"io/ioutil"
 
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
+	"github.com/tensorflow/tensorflow/tensorflow/go/op"
 )
 
 func main() {
 	fmt.Printf("\n== Tensorflow CoreLib Version is : %v ==\n\n", tf.Version())
 
-	model_name := "age_gender_andy.pb"
-	img_name := "bona.jpg"
 	//
-	feedsOutputOperationName := "input_1"
-	fetchOutputOperationName := "gender/Softmax"
+	image := "/go/src/app/testimg/demo.jpg"
+	modelDir := "/go/src/app/tfmodel2/age_gender_v2"
+	modelName := "serve"
+	feedOutputName := "serving_default_input_1"
+	fetchOutputName := "StatefulPartitionedCall"
 
-	RunJPG(model_name, img_name, feedsOutputOperationName, fetchOutputOperationName)
+	//
+	b, err := ioutil.ReadFile(image)
+	if err != nil {
+		panic(err)
+	}
+	tensor := MakeTensorFromImageByte(b)
+
+	dir := modelDir
+	tags := []string{
+		modelName,
+	}
+
+	model, err := tf.LoadSavedModel(dir, tags, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	for i, obj := range model.Graph.Operations() {
+		fmt.Printf("%v => %v, %v, %v\n", i, obj.Name(), obj.Type(), obj.NumOutputs())
+	}
+
+	result, err := model.Session.Run(
+		map[tf.Output]*tf.Tensor{
+			model.Graph.Operation(feedOutputName).Output(0): tensor,
+		},
+		[]tf.Output{
+			model.Graph.Operation(fetchOutputName).Output(0),
+			model.Graph.Operation(fetchOutputName).Output(1),
+		},
+		nil,
+	)
+	fmt.Println(result[0].Value().([][]float32)[0][0]*35 + 35)
+	if result[1].Value().([][]float32)[0][0] > result[1].Value().([][]float32)[0][1] {
+		fmt.Println("women")
+	} else {
+		fmt.Println("man")
+	}
 }
 
-var ImgBasePath = "/go/src/app/testimg/"
-
-func RunJPG(modelName string, imgName string, feedsOutputOperationName, fetchOutputOperationName string) {
-	tfClient := imageprocess.NewTFClient(modelName)
-	defer tfClient.Close()
-	b := tfClient.ReadJPGFromPath(ImgBasePath + imgName)
-	imgTensorFormat := tfClient.MakeTensorFromImageByte(b)
-	feedsOutput := map[tf.Output]*tf.Tensor{
-		// tfClient.ModelGraph.Operation("input_1").Output(0): imgTensorFormat,
-		tfClient.ModelGraph.Operation(feedsOutputOperationName).Output(0): imgTensorFormat,
+func MakeTensorFromImageByte(imgBytes []byte) *tf.Tensor {
+	tensor, err := tf.NewTensor(string(imgBytes))
+	if err != nil {
+		panic(err)
 	}
-	fetchOutput := []tf.Output{
-		// tfClient.ModelGraph.Operation("age/Sigmoid").Output(0),
-		tfClient.ModelGraph.Operation(fetchOutputOperationName).Output(0),
+	// Construct a graph to normalize the image
+	graph, input, output, err := constructGraphToNormalizeImage()
+	if err != nil {
+		panic(err)
 	}
+	// Execute that graph to normalize this one image
+	session, err := tf.NewSession(graph, nil)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	normalized, err := session.Run(
+		map[tf.Output]*tf.Tensor{input: tensor},
+		[]tf.Output{output},
+		nil)
+	if err != nil {
+		panic(err)
+	}
+	return normalized[0]
+}
 
-	output := tfClient.GetResult(feedsOutput, fetchOutput)
-	fmt.Println(output[0].Value())
+func constructGraphToNormalizeImage() (graph *tf.Graph, input, output tf.Output, err error) {
+	var TFStringType tf.DataType = tf.String
+	var TFFloatType tf.DataType = tf.Float
+	const (
+		H, W  = 128, 128
+		Mean  = float32(127.5)
+		Scale = float32(127.5)
+	)
+
+	s := op.NewScope()
+	input = op.Placeholder(s, TFStringType)
+	output = op.Div(s,
+		op.Sub(s,
+			op.ResizeBilinear(s,
+				op.ExpandDims(s,
+					op.Cast(s,
+						op.DecodeJpeg(s, input, op.DecodeJpegChannels(3)), TFFloatType),
+					op.Const(s.SubScope("make_batch"), int32(0))),
+				op.Const(s.SubScope("size"), []int32{H, W})),
+			op.Const(s.SubScope("mean"), Mean)),
+		op.Const(s.SubScope("scale"), Scale))
+	graph, err = s.Finalize()
+
+	return graph, input, output, err
 }
